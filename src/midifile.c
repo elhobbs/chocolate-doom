@@ -20,6 +20,8 @@
 #include <string.h>
 #include <assert.h>
 
+#include "SDL.h"
+
 #include "doomtype.h"
 #include "i_swap.h"
 #include "midifile.h"

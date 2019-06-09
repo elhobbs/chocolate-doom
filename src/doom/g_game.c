@@ -732,6 +732,7 @@ static void SetMouseButtons(unsigned int buttons_mask)
 // 
 boolean G_Responder (event_t* ev) 
 { 
+	//printf("gev: %d\n", ev->type);
     // allow spy mode changes even during the demo
     if (gamestate == GS_LEVEL && ev->type == ev_keydown 
      && ev->data1 == key_spy && (singledemo || !deathmatch) )

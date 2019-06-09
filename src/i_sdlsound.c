@@ -627,7 +627,7 @@ static boolean ExpandSoundData_SDL(sfxinfo_t *sfxinfo,
 
     // If we can, use the standard / optimized SDL conversion routines.
 
-    if (samplerate <= mixer_freq
+    /*if (samplerate <= mixer_freq
      && ConvertibleRatio(samplerate, mixer_freq)
      && SDL_BuildAudioCVT(&convertor,
                           AUDIO_U8, 1, samplerate,
@@ -639,7 +639,7 @@ static boolean ExpandSoundData_SDL(sfxinfo_t *sfxinfo,
 
         SDL_ConvertAudio(&convertor);
     }
-    else
+    else*/
     {
         Sint16 *expanded = (Sint16 *) chunk->abuf;
         int expanded_length;

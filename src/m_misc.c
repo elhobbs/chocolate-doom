@@ -250,7 +250,7 @@ char *M_TempFile(char *s)
 #else
     // In Unix, just use /tmp.
 
-    tempdir = "/tmp";
+    tempdir = "/";
 #endif
 
     return M_StringJoin(tempdir, DIR_SEPARATOR_S, s, NULL);

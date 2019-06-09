@@ -1076,7 +1076,7 @@ void I_InitWindowTitle(void)
     char *buf;
 
     buf = M_StringJoin(window_title, " - ", PACKAGE_STRING, NULL);
-    SDL_WM_SetCaption(buf, NULL);
+    //SDL_WM_SetCaption(buf, NULL);
     free(buf);
 }
 
@@ -1854,27 +1854,14 @@ void I_InitGraphics(void)
     byte *doompal;
     char *env;
 
-    // Pass through the XSCREENSAVER_WINDOW environment variable to 
-    // SDL_WINDOWID, to embed the SDL window into the Xscreensaver
-    // window.
 
-    env = getenv("XSCREENSAVER_WINDOW");
+	waithere("SetSDLVideoDriver");
+	SetSDLVideoDriver();
+	waithere("SetWindowPositionVars");
+	SetWindowPositionVars();
 
-    if (env != NULL)
-    {
-        char winenv[30];
-        int winid;
-
-        sscanf(env, "0x%x", &winid);
-        M_snprintf(winenv, sizeof(winenv), "SDL_WINDOWID=%i", winid);
-
-        putenv(winenv);
-    }
-
-    SetSDLVideoDriver();
-    SetWindowPositionVars();
-
-    if (SDL_Init(SDL_INIT_VIDEO) < 0) 
+	waithere("SDL_Init");
+	if (SDL_Init(SDL_INIT_VIDEO) < 0)
     {
         I_Error("Failed to initialize video: %s", SDL_GetError());
     }
@@ -1882,42 +1869,26 @@ void I_InitGraphics(void)
     // Set up title and icon.  Windows cares about the ordering; this
     // has to be done before the call to SDL_SetVideoMode.
 
-    I_InitWindowTitle();
-    I_InitWindowIcon();
+	waithere("I_InitWindowTitle");
+	I_InitWindowTitle();
+	waithere("I_InitWindowIcon");
+	I_InitWindowIcon();
 
-    // Warning to OS X users... though they might never see it :(
-#ifdef __MACOSX__
-    if (fullscreen)
-    {
-        printf("Some old versions of OS X might crash in fullscreen mode.\n"
-               "If this happens to you, switch back to windowed mode.\n");
-    }
-#endif
 
-    //
-    // Enter into graphics mode.
-    //
-    // When in screensaver mode, run full screen and auto detect
-    // screen dimensions (don't change video mode)
-    //
-
-    if (screensaver_mode)
-    {
-        SetVideoMode(NULL, 0, 0);
-    }
-    else
     {
         int w, h;
 
         if (autoadjust_video_settings)
         {
-            I_AutoAdjustSettings();
+			waithere("I_AutoAdjustSettings");
+			I_AutoAdjustSettings();
         }
 
         w = screen_width;
         h = screen_height;
 
-        screen_mode = I_FindScreenMode(w, h);
+		waithere("I_FindScreenMode");
+		screen_mode = I_FindScreenMode(w, h);
 
         if (screen_mode == NULL)
         {
@@ -1932,24 +1903,32 @@ void I_InitGraphics(void)
                    screen_mode->width, screen_mode->height, w, h);
         }
 
-        SetVideoMode(screen_mode, w, h);
+		waithere("SetVideoMode");
+		SetVideoMode(screen_mode, w, h);
     }
 
     // Start with a clear black screen
     // (screen will be flipped after we set the palette)
 
-    SDL_FillRect(screenbuffer, NULL, 0);
+	waithere("SDL_FillRect");
+	SDL_FillRect(screenbuffer, NULL, 0);
 
     // Set the palette
 
-    doompal = W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE);
-    I_SetPalette(doompal);
-    SDL_SetColors(screenbuffer, palette, 0, 256);
+	waithere("PLAYPAL");
+	doompal = W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE);
+	waithere("I_InitI_SetPaletteGraphics");
+	I_SetPalette(doompal);
+	waithere("SDL_SetColors");
+	SDL_SetColors(screenbuffer, palette, 0, 256);
 
-    CreateCursors();
+	waithere("CreateCursors");
+	CreateCursors();
 
-    UpdateFocus();
-    UpdateGrab();
+	waithere("UpdateFocus");
+	UpdateFocus();
+	waithere("UpdateGrab");
+	UpdateGrab();
 
     // On some systems, it takes a second or so for the screen to settle
     // after changing modes.  We include the option to add a delay when
@@ -1958,7 +1937,8 @@ void I_InitGraphics(void)
 
     if (fullscreen && !screensaver_mode)
     {
-        SDL_Delay(startup_delay);
+		waithere("SDL_Delay");
+		SDL_Delay(startup_delay);
     }
 
     // Check if we have a native surface we can use
@@ -1967,7 +1947,7 @@ void I_InitGraphics(void)
     // If we have to multiply, drawing is done to a separate 320x200 buf
 
     native_surface = screen == screenbuffer
-                  && !SDL_MUSTLOCK(screen)
+                  //&& !SDL_MUSTLOCK(screen)
                   && screen_mode == &mode_scale_1x
                   && screen->pitch == SCREENWIDTH
                   && aspect_ratio_correct;
@@ -1977,41 +1957,48 @@ void I_InitGraphics(void)
 
     if (native_surface)
     {
-	I_VideoBuffer = (unsigned char *) screen->pixels;
+		waithere("I_VideoBuffer screen pixels");
+		I_VideoBuffer = (unsigned char *) screen->pixels;
 
         I_VideoBuffer += (screen->h - SCREENHEIGHT) / 2;
     }
     else
     {
-	I_VideoBuffer = (unsigned char *) Z_Malloc (SCREENWIDTH * SCREENHEIGHT, 
+		waithere("I_VideoBuffer zmalloc");
+		I_VideoBuffer = (unsigned char *) Z_Malloc (SCREENWIDTH * SCREENHEIGHT,
                                                     PU_STATIC, NULL);
     }
 
-    V_RestoreBuffer();
+	waithere("V_RestoreBuffer");
+	V_RestoreBuffer();
 
     // Clear the screen to black.
 
-    memset(I_VideoBuffer, 0, SCREENWIDTH * SCREENHEIGHT);
+	waithere("memset I_VideoBuffer");
+	memset(I_VideoBuffer, 0, SCREENWIDTH * SCREENHEIGHT);
 
     // We need SDL to give us translated versions of keys as well
 
-    SDL_EnableUNICODE(1);
+    //SDL_EnableUNICODE(1);
 
     // Repeat key presses - this is what Vanilla Doom does
     // Not sure about repeat rate - probably dependent on which DOS
     // driver is used.  This is good enough though.
 
-    SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
+	waithere("SDL_EnableKeyRepeat");
+	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
 
     // clear out any events waiting at the start and center the mouse
   
-    while (SDL_PollEvent(&dummy));
+	waithere("SDL_PollEvent");
+	while (SDL_PollEvent(&dummy));
 
     initialized = true;
 
     // Call I_ShutdownGraphics on quit
 
-    I_AtExit(I_ShutdownGraphics, true);
+	waithere("I_AtExit");
+	I_AtExit(I_ShutdownGraphics, true);
 }
 
 // Bind all variables controlling video options into the configuration

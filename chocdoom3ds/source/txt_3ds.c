@@ -15,6 +15,8 @@
 // Text mode emulation in SDL
 //
 
+#include <3ds.h>
+
 #include "SDL.h"
 
 #include <ctype.h>
@@ -114,34 +116,6 @@ static SDL_Color ega_colors[] =
 
 #endif
 
-#ifdef _WIN32
-
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-
-// Examine system DPI settings to determine whether to use the large font.
-
-static int Win32_UseLargeFont(void)
-{
-    HDC hdc = GetDC(NULL);
-    int dpix;
-
-    if (!hdc)
-    {
-        return 0;
-    }
-
-    dpix = GetDeviceCaps(hdc, LOGPIXELSX);
-    ReleaseDC(NULL, hdc);
-
-    // 144 is the DPI when using "150%" scaling. If the user has this set
-    // then consider this an appropriate threshold for using the large font.
-
-    return dpix >= 144;
-}
-
-#endif
-
 static txt_font_t *FontForName(char *name)
 {
     if (!strcmp(name, "small"))
@@ -158,7 +132,7 @@ static txt_font_t *FontForName(char *name)
     }
     else
     {
-        return NULL;
+        return 0;
     }
 }
 
@@ -171,63 +145,7 @@ static txt_font_t *FontForName(char *name)
 
 static void ChooseFont(void)
 {
-    const SDL_VideoInfo *info;
-    char *env;
-
-    // Allow normal selection to be overridden from an environment variable:
-
-    env = getenv("TEXTSCREEN_FONT");
-
-    if (env != NULL)
-    {
-        font = FontForName(env);
-
-        if (font != NULL)
-        {
-            return;
-        }
-    }
-
-    // Get desktop resolution:
-
-    info = SDL_GetVideoInfo();
-
-    // If in doubt and we can't get a list, always prefer to
-    // fall back to the normal font:
-
-    if (info == NULL)
-    {
-        font = &main_font;
-        return;
-    }
-
-    // On tiny low-res screens (eg. palmtops) use the small font.
-    // If the screen resolution is at least 1920x1080, this is
-    // a modern high-resolution display, and we can use the
-    // large font.
-
-    if (info->current_w < 640 || info->current_h < 480)
-    {
-        font = &small_font;
-    }
-#ifdef _WIN32
-    // On Windows we can use the system DPI settings to make a
-    // more educated guess about whether to use the large font.
-
-    else if (Win32_UseLargeFont())
-    {
-        font = &large_font;
-    }
-#endif
-    // TODO: Detect high DPI on Linux by inquiring about Gtk+ scale
-    // settings. This looks like it should just be a case of shelling
-    // out to invoke the 'gsettings' command, eg.
-    //   gsettings get org.gnome.desktop.interface text-scaling-factor
-    // and using large_font if the result is >= 2.
-    else
-    {
-        font = &main_font;
-    }
+	font = &small_font;
 }
 
 //
@@ -238,20 +156,17 @@ static void ChooseFont(void)
 
 int TXT_Init(void)
 {
-    if (SDL_InitSubSystem(SDL_INIT_VIDEO) < 0)
-    {
-        return 0;
-    }
-
     ChooseFont();
 
     // Always create the screen at the native screen depth (bpp=0);
     // some systems nowadays don't seem to support true 8-bit palettized
     // screen modes very well and we end up with screwed up colors.
-    screen = SDL_SetVideoMode(TXT_SCREEN_W * font->w,
-                              TXT_SCREEN_H * font->h, 0, 0);
 
-    if (screen == NULL)
+    //screen = SDL_SetVideoMode(TXT_SCREEN_W * font->w,
+    //                          TXT_SCREEN_H * font->h, 0, 0);
+    screen = SDL_SetVideoMode(400, 320, 0, 0);
+
+    if (screen == 0)
         return 0;
 
     // Instead, we draw everything into an intermediate 8-bit surface
@@ -273,7 +188,7 @@ int TXT_Init(void)
     // Repeat key presses so we can hold down arrows to scroll down the
     // menu, for example. This is what setup.exe does.
 
-    SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
+    //SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
 
     return 1;
 }
@@ -284,7 +199,7 @@ void TXT_Shutdown(void)
     screendata = NULL;
     SDL_FreeSurface(screenbuffer);
     screenbuffer = NULL;
-    SDL_QuitSubSystem(SDL_INIT_VIDEO);
+	gfxExit();
 }
 
 unsigned char *TXT_GetScreenData(void)
@@ -422,7 +337,7 @@ void TXT_GetMousePosition(int *x, int *y)
 // Translates the SDL key
 //
 
-static int TranslateKey(SDL_keysym *sym)
+static int TranslateKey(SDL_Keysym *sym)
 {
     switch(sym->sym)
     {
@@ -445,7 +360,7 @@ static int TranslateKey(SDL_keysym *sym)
         case SDLK_F10:         return KEY_F10;
         case SDLK_F11:         return KEY_F11;
         case SDLK_F12:         return KEY_F12;
-        case SDLK_PRINT:       return KEY_PRTSCR;
+        case SDLK_PRINTSCREEN: return KEY_PRTSCR;
 
         case SDLK_BACKSPACE:   return KEY_BACKSPACE;
         case SDLK_DELETE:      return KEY_DEL;
@@ -462,12 +377,12 @@ static int TranslateKey(SDL_keysym *sym)
 
         case SDLK_LALT:
         case SDLK_RALT:
-        case SDLK_LMETA:
-        case SDLK_RMETA:
-                               return KEY_RALT;
+        //case SDLK_LMETA:
+        //case SDLK_RMETA:
+        //                       return KEY_RALT;
 
         case SDLK_CAPSLOCK:    return KEY_CAPSLOCK;
-        case SDLK_SCROLLOCK:   return KEY_SCRLCK;
+        //case SDLK_SCROLLOCK:   return KEY_SCRLCK;
 
         case SDLK_HOME:        return KEY_HOME;
         case SDLK_INSERT:      return KEY_INS;
@@ -498,14 +413,14 @@ static int TranslateKey(SDL_keysym *sym)
         // Unicode characters beyond the ASCII range need to be
         // mapped up into textscreen's Unicode range.
 
-        if (sym->unicode < 128)
+        /*if (sym->unicode < 128)
         {
             return sym->unicode;
         }
         else
         {
             return sym->unicode - 128 + TXT_UNICODE_BASE;
-        }
+        }*/
     }
     else
     {
@@ -515,16 +430,16 @@ static int TranslateKey(SDL_keysym *sym)
 
         switch (sym->sym)
         {
-            case SDLK_KP0:         return KEYP_0;
-            case SDLK_KP1:         return KEYP_1;
-            case SDLK_KP2:         return KEYP_2;
-            case SDLK_KP3:         return KEYP_3;
-            case SDLK_KP4:         return KEYP_4;
-            case SDLK_KP5:         return KEYP_5;
-            case SDLK_KP6:         return KEYP_6;
-            case SDLK_KP7:         return KEYP_7;
-            case SDLK_KP8:         return KEYP_8;
-            case SDLK_KP9:         return KEYP_9;
+            case SDLK_KP_0:         return KEYP_0;
+            case SDLK_KP_1:         return KEYP_1;
+            case SDLK_KP_2:         return KEYP_2;
+            case SDLK_KP_3:         return KEYP_3;
+            case SDLK_KP_4:         return KEYP_4;
+            case SDLK_KP_5:         return KEYP_5;
+            case SDLK_KP_6:         return KEYP_6;
+            case SDLK_KP_7:         return KEYP_7;
+            case SDLK_KP_8:         return KEYP_8;
+            case SDLK_KP_9:         return KEYP_9;
 
             case SDLK_KP_PERIOD:   return KEYP_PERIOD;
             case SDLK_KP_MULTIPLY: return KEYP_MULTIPLY;
@@ -580,7 +495,7 @@ static int MouseHasMoved(void)
 // Examine a key press/release and update the modifier key state
 // if necessary.
 
-static void UpdateModifierState(SDL_keysym *sym, int pressed)
+static void UpdateModifierState(SDL_Keysym *sym, int pressed)
 {
     txt_modifier_t mod;
 
@@ -598,8 +513,8 @@ static void UpdateModifierState(SDL_keysym *sym, int pressed)
 
         case SDLK_LALT:
         case SDLK_RALT:
-        case SDLK_LMETA:
-        case SDLK_RMETA:
+        //case SDLK_LMETA:
+        //case SDLK_RMETA:
             mod = TXT_MOD_ALT;
             break;
 
@@ -621,6 +536,8 @@ signed int TXT_GetChar(void)
 {
     SDL_Event ev;
 
+	SDL_PumpEvents();
+
     while (SDL_PollEvent(&ev))
     {
         // If there is an event callback, allow it to intercept this
@@ -638,32 +555,32 @@ signed int TXT_GetChar(void)
 
         switch (ev.type)
         {
-            case SDL_MOUSEBUTTONDOWN:
+            /*case SDL_MOUSEBUTTONDOWN:
                 if (ev.button.button < TXT_MAX_MOUSE_BUTTONS)
                 {
                     return SDLButtonToTXTButton(ev.button.button);
                 }
-                break;
+                break;*/
 
             case SDL_KEYDOWN:
                 UpdateModifierState(&ev.key.keysym, 1);
-
+			
                 return TranslateKey(&ev.key.keysym);
-
+			
             case SDL_KEYUP:
                 UpdateModifierState(&ev.key.keysym, 0);
                 break;
-
-            case SDL_QUIT:
-                // Quit = escape
-                return 27;
-
-            case SDL_MOUSEMOTION:
-                if (MouseHasMoved())
-                {
-                    return 0;
-                }
-
+			//
+            //case SDL_QUIT:
+            //    // Quit = escape
+            //    return 27;
+			//
+            //case SDL_MOUSEMOTION:
+            //    if (MouseHasMoved())
+            //    {
+            //        return 0;
+            //    }
+			//
             default:
                 break;
         }

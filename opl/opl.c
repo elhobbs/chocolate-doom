@@ -37,6 +37,7 @@ extern opl_driver_t opl_openbsd_driver;
 extern opl_driver_t opl_win32_driver;
 #endif
 extern opl_driver_t opl_sdl_driver;
+extern opl_driver_t opl_3ds_driver;
 
 static opl_driver_t *drivers[] =
 {
@@ -49,14 +50,14 @@ static opl_driver_t *drivers[] =
 #ifdef _WIN32
     &opl_win32_driver,
 #endif
-    &opl_sdl_driver,
+    &opl_3ds_driver,
     NULL
 };
 
 static opl_driver_t *driver = NULL;
 static int init_stage_reg_writes = 1;
 
-unsigned int opl_sample_rate = 22050;
+unsigned int opl_sample_rate = 11025;// 22050;
 
 //
 // Init/shutdown code.
@@ -86,8 +87,8 @@ static opl_init_result_t InitDriver(opl_driver_t *_driver,
     init_stage_reg_writes = 1;
 
     result1 = OPL_Detect();
-    result2 = OPL_Detect();
-    if (result1 == OPL_INIT_NONE || result2 == OPL_INIT_NONE)
+    //result2 = OPL_Detect();
+    if (result1 == OPL_INIT_NONE/* || result2 == OPL_INIT_NONE*/)
     {
         printf("OPL_Init: No OPL detected using '%s' driver.\n", _driver->name);
         _driver->shutdown_func();
@@ -99,7 +100,7 @@ static opl_init_result_t InitDriver(opl_driver_t *_driver,
 
     printf("OPL_Init: Using driver '%s'.\n", driver->name);
 
-    return result2;
+    return result1;
 }
 
 // Find a driver automatically by trying each in the list.
@@ -126,11 +127,20 @@ static opl_init_result_t AutoSelectDriver(unsigned int port_base)
 // Initialize the OPL library. Return value indicates type of OPL chip
 // detected, if any.
 
+//static int init_count = 0;
 opl_init_result_t OPL_Init(unsigned int port_base)
 {
     char *driver_name;
     int i;
     int result;
+
+	//if (init_count) {
+	//	printf("here");
+	//	while (1);
+	//}
+	//printf("OPL_Init % d\n", init_count++);
+
+	//while (1);
 
     driver_name = getenv("OPL_DRIVER");
 
@@ -283,6 +293,7 @@ opl_init_result_t OPL_Detect(void)
 {
     int result1, result2;
     int i;
+	//printf("\n\nOPL_Detect\n");
 
     // Reset both timers:
     OPL_WriteRegister(OPL_REG_TIMER_CTRL, 0x60);
@@ -291,26 +302,36 @@ opl_init_result_t OPL_Detect(void)
     OPL_WriteRegister(OPL_REG_TIMER_CTRL, 0x80);
 
     // Read status
+	//printf("\nget result1\n");
     result1 = OPL_ReadStatus();
+	//printf("\nresult1 %d\n\n", result1);
 
     // Set timer:
+	//printf("\nOPL_REG_TIMER1 0xff\n");
     OPL_WriteRegister(OPL_REG_TIMER1, 0xff);
 
     // Start timer 1:
+	//printf("\nOPL_REG_TIMER_CTRL 0x21\n");
     OPL_WriteRegister(OPL_REG_TIMER_CTRL, 0x21);
 
     // Wait for 80 microseconds
     // This is how Doom does it:
 
-    for (i=0; i<200; ++i)
+	//printf("\nOPL_ReadStatus 200\n");
+	for (i=0; i<200; ++i)
     {
         OPL_ReadStatus();
     }
 
-    OPL_Delay(1 * OPL_MS);
+    //OPL_Delay(1 * OPL_MS);
+	svcSleepThread(1 * OPL_MS * 1000000LL);
 
     // Read status
-    result2 = OPL_ReadStatus();
+	//printf("\nOPL_ReadStatus result2\n");
+	result2 = OPL_ReadStatus();
+
+	//printf("\nresult %02x %02x\n", result1, result2);
+	//while (1);
 
     // Reset both timers:
     OPL_WriteRegister(OPL_REG_TIMER_CTRL, 0x60);
@@ -324,16 +345,22 @@ opl_init_result_t OPL_Detect(void)
         result2 = OPL_ReadPort(OPL_REGISTER_PORT_OPL3);
         if (result1 == 0x00)
         {
-            return OPL_INIT_OPL3;
+			//printf("\n\nOPL_INIT_OPL3\n\n");
+			//while (1);
+			return OPL_INIT_OPL3;
         }
         else
         {
-            return OPL_INIT_OPL2;
+			//printf("\nOPL_INIT_OPL2\n\n");
+			//while (1);
+			return OPL_INIT_OPL2;
         }
     }
     else
     {
-        return OPL_INIT_NONE;
+		//printf("\n\nOPL_INIT_NONE\n\n");
+		//while (1);
+		return OPL_INIT_NONE;
     }
 }
 
@@ -450,6 +477,7 @@ void OPL_Unlock(void)
     }
 }
 
+/*
 typedef struct
 {
     int finished;
@@ -504,6 +532,7 @@ void OPL_Delay(uint64_t us)
     SDL_DestroyMutex(delay_data.mutex);
     SDL_DestroyCond(delay_data.cond);
 }
+*/
 
 void OPL_SetPaused(int paused)
 {

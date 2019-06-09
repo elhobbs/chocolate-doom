@@ -100,6 +100,7 @@ typedef enum
     SNDDEVICE_GENMIDI = 8,
     SNDDEVICE_AWE32 = 9,
     SNDDEVICE_CD = 10,
+	SNDDEVICE_3DS = 11,
 } snddevice_t;
 
 // Interface for sound modules
@@ -230,6 +231,7 @@ boolean I_MusicIsPlaying(void);
 extern int snd_sfxdevice;
 extern int snd_musicdevice;
 extern int snd_samplerate;
+extern int mus_samplerate;
 extern int snd_cachesize;
 extern int snd_maxslicetime_ms;
 extern char *snd_musiccmd;

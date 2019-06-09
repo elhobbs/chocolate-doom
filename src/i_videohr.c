@@ -40,7 +40,7 @@ boolean I_SetVideoModeHR(void)
         return false;
     }
 
-    SDL_WM_SetCaption(window_title,  NULL);
+    //SDL_WM_SetCaption(window_title,  NULL);
 
     // Create screen surface at the native desktop pixel depth (bpp=0),
     // as we cannot trust true 8-bit to reliably work nowadays.

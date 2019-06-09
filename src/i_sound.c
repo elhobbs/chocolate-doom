@@ -58,8 +58,8 @@ int snd_pitchshift = -1;
 static sound_module_t *sound_module;
 static music_module_t *music_module;
 
-int snd_musicdevice = SNDDEVICE_SB;
-int snd_sfxdevice = SNDDEVICE_SB;
+int snd_musicdevice = SNDDEVICE_3DS;
+int snd_sfxdevice = SNDDEVICE_3DS;
 
 // Sound modules
 

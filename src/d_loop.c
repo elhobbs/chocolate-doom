@@ -707,6 +707,8 @@ void TryRunTics (void)
     realtics = entertic - oldentertics;
     oldentertics = entertic;
 
+	//printf("realtics %d\n", realtics);
+
     // in singletics mode, run a single tic every time this function
     // is called.
 

@@ -22,6 +22,7 @@
 // text mode screen API:
 
 #include "txt_sdl.h"
+#include <stdarg.h>
 
 // textscreen key values:
 // Key values are difficult because we have to support multiple conflicting

@@ -785,14 +785,21 @@ static default_t extra_defaults_list[] =
 
     CONFIG_VARIABLE_INT(mouse_threshold),
 
-    //!
-    // Sound output sample rate, in Hz.  Typical values to use are
+	//!
+	// Sound output sample rate, in Hz.  Typical values to use are
+	// 11025, 22050, 44100 and 48000.
+	//
+
+	CONFIG_VARIABLE_INT(snd_samplerate),
+
+	//!
+    // Music output sample rate, in Hz.  Typical values to use are
     // 11025, 22050, 44100 and 48000.
     //
 
-    CONFIG_VARIABLE_INT(snd_samplerate),
+    CONFIG_VARIABLE_INT(mus_samplerate),
 
-    //!
+//!
     // Maximum number of bytes to allocate for caching converted sound
     // effects in memory. If set to zero, there is no limit applied.
     //
@@ -2160,7 +2167,9 @@ void M_SetConfigDir(char *dir)
 
     // Make the directory if it doesn't already exist:
 
-    M_MakeDirectory(configdir);
+	waithere("M_MakeDirectory start");
+	M_MakeDirectory(configdir);
+	waithere("M_MakeDirectory end");
 }
 
 //

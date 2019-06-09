@@ -182,9 +182,11 @@ void D_Display (void)
     boolean			wipe;
     boolean			redrawsbar;
 
+	waithere("D_Display");
     if (nodrawers)
 	return;                    // for comparative timing / profiling
-		
+	waithere("nodrawers");
+
     redrawsbar = false;
     
     // change the view size if needed
@@ -358,13 +360,18 @@ void D_BindVariables(void)
 {
     int i;
 
-    M_ApplyPlatformDefaults();
+	waithere("M_ApplyPlatformDefaults");
+	M_ApplyPlatformDefaults();
 
-    I_BindVideoVariables();
-    I_BindJoystickVariables();
-    I_BindSoundVariables();
+	waithere("I_BindVideoVariables");
+	I_BindVideoVariables();
+	waithere("I_BindJoystickVariables");
+	I_BindJoystickVariables();
+	waithere("I_BindSoundVariables");
+	I_BindSoundVariables();
 
-    M_BindBaseControls();
+	waithere("M_BindBaseControls");
+	M_BindBaseControls();
     M_BindWeaponControls();
     M_BindMapControls();
     M_BindMenuControls();
@@ -425,12 +432,18 @@ boolean D_GrabMouseCallback(void)
     return (gamestate == GS_LEVEL) && !demoplayback && !advancedemo;
 }
 
+#ifdef _3DS
+#define RUNNING aptMainLoop()
+#else
+#define RUNNING (1)
+#endif
 //
 //  D_DoomLoop
 //
 void D_DoomLoop (void)
 {
-    if (gamevariant == bfgedition &&
+	waithere("D_DoomLoop");
+	if (gamevariant == bfgedition &&
         (demorecording || (gameaction == ga_playdemo) || netgame))
     {
         printf(" WARNING: You are playing using one of the Doom Classic\n"
@@ -444,36 +457,47 @@ void D_DoomLoop (void)
 
     main_loop_started = true;
 
-    TryRunTics();
+	waithere("TryRunTics");
+	TryRunTics();
 
-    I_SetWindowTitle(gamedescription);
+	waithere("D_DoomLoop");
+	I_SetWindowTitle(gamedescription);
     I_GraphicsCheckCommandLine();
     I_SetGrabMouseCallback(D_GrabMouseCallback);
-    I_InitGraphics();
-    EnableLoadingDisk();
+	waithere("I_InitGraphics");
+	I_InitGraphics();
+	waithere("EnableLoadingDisk");
+	EnableLoadingDisk();
 
-    V_RestoreBuffer();
+	waithere("V_RestoreBuffer");
+	V_RestoreBuffer();
     R_ExecuteSetViewSize();
 
-    D_StartGameLoop();
+	waithere("D_StartGameLoop");
+	D_StartGameLoop();
 
     if (testcontrols)
     {
         wipegamestate = gamestate;
     }
 
-    while (1)
+    while (RUNNING)
     {
 	// frame syncronous IO operations
-	I_StartFrame ();
+		waithere("I_StartFrame");
+		I_StartFrame ();
 
-        TryRunTics (); // will run at least one tic
+		waithere("TryRunTics");
+		TryRunTics (); // will run at least one tic
 
-	S_UpdateSounds (players[consoleplayer].mo);// move positional sounds
+		waithere("S_UpdateSounds");
+		S_UpdateSounds (players[consoleplayer].mo);// move positional sounds
 
 	// Update display, next frame, with current state.
-        if (screenvisible)
-            D_Display ();
+		if (screenvisible) {
+			waithere("--screenvisible D_Display");
+			D_Display();
+		}
     }
 }
 
@@ -1214,7 +1238,7 @@ static void G_CheckDemoStatusAtExit (void)
 //
 // D_DoomMain
 //
-void D_DoomMain (void)
+void D_DoomMainSetup (void)
 {
     int p;
     char file[256];
@@ -1371,7 +1395,8 @@ void D_DoomMain (void)
     {
         // Auto-detect the configuration dir.
 
-        M_SetConfigDir(NULL);
+		waithere("M_SetConfigDir");
+		M_SetConfigDir(NULL);
     }
 
     //!
@@ -1401,21 +1426,27 @@ void D_DoomMain (void)
 	sidemove[1] = sidemove[1]*scale/100;
     }
     
-    // init subsystems
+	// init subsystems
+	waithere("V_Init");
     DEH_printf("V_Init: allocate screens.\n");
     V_Init ();
 
     // Load configuration files before initialising other subsystems.
-    DEH_printf("M_LoadDefaults: Load system defaults.\n");
+	waithere("M_SetConfigFilenames");
+	DEH_printf("M_LoadDefaults: Load system defaults.\n");
     M_SetConfigFilenames("default.cfg", PROGRAM_PREFIX "doom.cfg");
-    D_BindVariables();
-    M_LoadDefaults();
+	waithere("D_BindVariables");
+	D_BindVariables();
+	waithere("M_LoadDefaults");
+	M_LoadDefaults();
 
     // Save configuration at exit.
-    I_AtExit(M_SaveDefaults, false);
+	waithere("I_AtExit");
+	I_AtExit(M_SaveDefaults, false);
 
     // Find main IWAD file and load it.
-    iwadfile = D_FindIWAD(IWAD_MASK_DOOM, &gamemission);
+	waithere("D_FindIWAD");
+	iwadfile = D_FindIWAD(IWAD_MASK_DOOM, &gamemission);
 
     // None found?
 
@@ -1427,7 +1458,8 @@ void D_DoomMain (void)
 
     modifiedgame = false;
 
-    DEH_printf("W_Init: Init WADfiles.\n");
+	waithere("W_Init");
+	DEH_printf("W_Init: Init WADfiles.\n");
     D_AddFile(iwadfile);
     numiwadlumps = numlumps;
 
@@ -1896,6 +1928,11 @@ void D_DoomMain (void)
 	    D_StartTitle ();                // start up intro loop
     }
 
-    D_DoomLoop ();  // never returns
 }
 
+void D_DoomMain(void) {
+	waithere("D_DoomMainSetup");
+	D_DoomMainSetup();
+	waithere("D_DoomLoop");
+	D_DoomLoop ();  // never returns
+}
