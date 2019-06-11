@@ -106,7 +106,7 @@ static Thread ndsp_thread;
 static volatile int ndsp_thread_quit = 0;
 
 static void ndsp_thread_main(void* arg) {
-	int64_t waitns = (1000000000LL * 512 * 2) / (ndsp_speed * ndsp_channels * 2);
+	int64_t waitns = (1000000000LL * WAV_BUFFER_SIZE * 2) / (ndsp_speed * ndsp_channels * 2);
 	//printf("ndsp_thread_main %lld %d %d\n", waitns, ndsp_speed, ndsp_channels);
 	svcSleepThread(waitns);
 	svcSleepThread(waitns);
@@ -134,7 +134,7 @@ int Mix_OpenAudio(int frequency, Uint16 format, int nchannels, int chunksize) {
 	//LightLock_Init(&ndsp_lock);
 	ndsp_init();
 	ndsp_thread_quit = 0;
-	ndsp_thread = threadCreate(ndsp_thread_main, 0, NDSP_STACK_SIZE, 0x18, -2, true);
+	//ndsp_thread = threadCreate(ndsp_thread_main, 0, NDSP_STACK_SIZE, 0x18, -2, true);
 
 	//printf("Mix_OpenAudio\n");
 	//while (1);
@@ -163,7 +163,7 @@ void Mix_CloseAudio(void) {
 	//LightLock_Lock(&ndsp_lock);
 	ndsp_thread_quit = 1;
 	//printf("waiting to join\n");
-	threadJoin(ndsp_thread, U64_MAX);
+	//threadJoin(ndsp_thread, U64_MAX);
 	//printf("joined\n");
 	//while (1);
 

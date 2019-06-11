@@ -1768,6 +1768,11 @@ static boolean I_OPL_InitMusic(void)
 	return true;
 }
 
+void I_OPL_Poll() {
+	void ndsp_submit();
+	ndsp_submit();
+}
+
 static snddevice_t music_opl_devices[] =
 {
 	SNDDEVICE_3DS,
@@ -1787,7 +1792,7 @@ music_module_t music_opl_module =
 	I_OPL_PlaySong,
 	I_OPL_StopSong,
 	I_OPL_MusicIsPlaying,
-	NULL,  // Poll
+	I_OPL_Poll,  // Poll
 };
 
 void I_SetOPLDriverVer(opl_driver_ver_t ver)

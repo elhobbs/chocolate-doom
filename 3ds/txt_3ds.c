@@ -164,7 +164,7 @@ int TXT_Init(void)
 
     //screen = SDL_SetVideoMode(TXT_SCREEN_W * font->w,
     //                          TXT_SCREEN_H * font->h, 0, 0);
-    screen = SDL_SetVideoMode(400, 320, 0, 0);
+    screen = SDL_SetVideoMode(400, 240, 8, 0);
 
     if (screen == 0)
         return 0;
@@ -199,7 +199,6 @@ void TXT_Shutdown(void)
     screendata = NULL;
     SDL_FreeSurface(screenbuffer);
     screenbuffer = NULL;
-	gfxExit();
 }
 
 unsigned char *TXT_GetScreenData(void)

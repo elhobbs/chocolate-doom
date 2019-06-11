@@ -54,8 +54,8 @@ byte *dc_source;                // first pixel in a column (possibly virtual)
 
 int dccount;                    // just for profiling
 
-void 
-
+void R_DrawColumn(void)
+{
     int count;
     byte *dest;
     fixed_t frac, fracstep;

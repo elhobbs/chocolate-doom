@@ -1346,7 +1346,7 @@ void D_DoomMainSetup (void)
 
     devparm = M_CheckParm ("-devparm");
 
-    I_DisplayFPSDots(devparm);
+	I_DisplayFPSDots(true);// devparm);
 
     //!
     // @category net

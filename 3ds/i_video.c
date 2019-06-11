@@ -741,8 +741,10 @@ static boolean BlitArea(int x1, int y1, int x2, int y2)
 
 	if (native_surface)
 	{
+		waithere("BlitArea native_surface");
 		return true;
 	}
+	waithere("BlitArea NOT native_surface");
 
 	x_offset = (screenbuffer->w - screen_mode->width) / 2;
 	y_offset = (screenbuffer->h - screen_mode->height) / 2;
@@ -810,8 +812,15 @@ void I_FinishUpdate(void)
 
 	// draw to screen
 
-	waithere("BlitArea");
+	//printf("I_VideoBuffer %p\n", I_VideoBuffer);
+	//printf("screenbuffer %p %d\n", screenbuffer->pixels, screenbuffer->pitch);
+	//printf("screen %p %d\n", screen->pixels, screen->pitch);
+	//printf("%d %p %p\n", palette_to_set, screenbuffer, screen);
+	//printf("%p %p %p\n", gfxTopLeftFramebuffers[0], gfxTopLeftFramebuffers[1], I_VideoBuffer);
+	wait_here("BlitArea pre");
 	BlitArea(0, 0, SCREENWIDTH, SCREENHEIGHT);
+	//int wait_here(char *);
+	//wait_here("BlitArea post");
 
 	if (palette_to_set)
 	{
@@ -1491,7 +1500,7 @@ void I_InitGraphics(void)
 
 	waithere("PLAYPAL");
 	doompal = W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE);
-	printf("poompal %p\n", doompal);
+
 	waithere("I_SetPalette");
 	I_SetPalette(doompal);
 	waithere("SDL_SetColors");

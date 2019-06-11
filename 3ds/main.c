@@ -12,6 +12,8 @@
 #include "i_system.h"
 #include "m_argv.h"
 
+u32 __stacksize__ = 512 * 1024;
+
 int waithere(char *str) {
 #if 0
 	printf("%s ...", str);

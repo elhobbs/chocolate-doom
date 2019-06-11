@@ -339,6 +339,8 @@ opl_init_result_t OPL_Detect(void)
     // Enable interrupts:
     OPL_WriteRegister(OPL_REG_TIMER_CTRL, 0x80);
 
+    return OPL_INIT_OPL3;
+
     if ((result1 & 0xe0) == 0x00 && (result2 & 0xe0) == 0xc0)
     {
         result1 = OPL_ReadPort(OPL_REGISTER_PORT);

@@ -4,6 +4,21 @@
 #include <malloc.h>
 #include <stdio.h>
 
+int wait_here(char *str) {
+#if 0
+	printf("%s ...", str);
+	do {
+		hidScanInput();
+	} while ((hidKeysHeld() & KEY_A) == 0);
+	do {
+		hidScanInput();
+	} while ((hidKeysHeld() & KEY_A) != 0);
+	printf("done.\n");
+#endif
+	return 0;
+}
+
+
 int SDL_LockSurface(SDL_Surface * surface) {
 	return 0;
 }
@@ -15,12 +30,12 @@ SDL_Surface* SDL_SetVideoMode(int width, int height, int bitsperpixel, u32 flags
 	int cb = (bitsperpixel + 7) / 8;
 	SDL_Surface *surf = (SDL_Surface*)malloc(sizeof(SDL_Surface));
 	//printf("surf %p\n", surf);
-	waithere("surf");
 	surf->w = width;
 	surf->h = height;
 	surf->pitch = cb * width;
 	surf->pixels = (u8 *)linearAlloc(cb * width * height);
-	//printf("surf %p %d %d\n", surf, width, height);
+	//printf(" %d %d %d %d\n", width, height, bitsperpixel, flags);
+	wait_here("SDL_SetVideoMode");
 	return surf;
 }
 
@@ -34,6 +49,8 @@ void SDL_FreeSurface(SDL_Surface *s) {
 }
 
 SDL_Surface *SDL_CreateRGBSurface(u32 flags, int width, int height, int depth, u32 Rmask, u32 Gmask, u32 Bmask, u32 Amask) {
+	//printf(" %d %d %d %d\n", width, height, depth, flags);
+	wait_here("SDL_CreateRGBSurface");
 	int cb = (depth + 7) / 8;
 	SDL_Surface *surf = (SDL_Surface*)malloc(sizeof(SDL_Surface));
 	surf->w = width;
@@ -44,8 +61,8 @@ SDL_Surface *SDL_CreateRGBSurface(u32 flags, int width, int height, int depth, u
 }
 
 void SDL_SetColors(SDL_Surface *screenbuffer, SDL_Color *ega_colors, int start, int count) {
-	//printf("sb: %p pal: %p start: %d count: %d colors: %p\n", screenbuffer, screenbuffer->palette, start, count, ega_colors);
-	waithere("SDL_SetColors");
+	//printf(" %d %d\n", start, count);
+	wait_here("SDL_SetColors");
 	memcpy(&screenbuffer->palette[start], ega_colors, count * sizeof(SDL_Color));
 }
 
@@ -59,9 +76,10 @@ int SDL_BlitSurface(SDL_Surface * surf_src, const SDL_Rect * srcrect, SDL_Surfac
 	SDL_Color *pal = surf_src->palette;
 	int w, h;
 
-	//printf("surf_src: %d %d %d\n", surf_src->w, surf_src->h, surf_src->pitch);
-	//printf("surf_dst: %d %d %d\n", surf_dst->w, surf_dst->h, surf_dst->pitch);
-	//printf("dstrect: %d %d %d %d\n", dstrect->x, dstrect->y, dstrect->w, dstrect->h);
+	//if(surf_src) printf("surf_src: %d %d %d\n", surf_src->w, surf_src->h, surf_src->pitch);
+	//if(surf_dst) printf("surf_dst: %d %d %d\n", surf_dst->w, surf_dst->h, surf_dst->pitch);
+	//if(dstrect) printf("dstrect: %d %d %d %d\n", dstrect->x, dstrect->y, dstrect->w, dstrect->h);
+	wait_here("SDL_BlitSurface");
 
 	for (w = 0; w < surf_src->w; w++) {
 		for (h = 0; h < surf_src->h; h++) {
@@ -76,14 +94,17 @@ int SDL_BlitSurface(SDL_Surface * surf_src, const SDL_Rect * srcrect, SDL_Surfac
 }
 
 void SDL_UpdateRects(SDL_Surface *screen, int numrects, SDL_Rect *rects) {
+	wait_here("SDL_UpdateRects");
 	gfxSwapBuffers();
 }
 
 int SDL_FillRect(SDL_Surface * dst, const SDL_Rect * rect, u32 color) {
+	wait_here("SDL_Flip");
 	return 0;
 }
 
 int SDL_Flip(SDL_Surface *screen) {
+	wait_here("SDL_Flip");
 	gfxSwapBuffers();
 	return 0;
 }
