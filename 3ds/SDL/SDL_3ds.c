@@ -35,6 +35,16 @@ SDL_Surface* SDL_SetVideoMode(int width, int height, int bitsperpixel, u32 flags
 	surf->pitch = cb * width;
 	surf->pixels = (u8 *)linearAlloc(cb * width * height);
 	//printf(" %d %d %d %d\n", width, height, bitsperpixel, flags);
+	
+	u8* bufAdr = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL);
+	memset(bufAdr,0,400*240*3);
+	gfxSwapBuffers();
+	
+	bufAdr = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL);
+	memset(bufAdr,0,400*240*3);
+	gfxSwapBuffers();
+	
+	memset(surf->pixels,0,cb * width * height);
 	wait_here("SDL_SetVideoMode");
 	return surf;
 }
@@ -89,6 +99,32 @@ int SDL_BlitSurface(SDL_Surface * surf_src, const SDL_Rect * srcrect, SDL_Surfac
 			bufAdr[dstofs++] = pal[src[srcofs]].g;
 			bufAdr[dstofs] = pal[src[srcofs]].r;
 		}
+	}
+	return 0;
+}
+
+int SDL_BlitSurfaceHR(SDL_Surface * surf_src, const SDL_Rect * srcrect, SDL_Surface * surf_dst, SDL_Rect * dstrect) {
+	u8* bufAdr = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL);
+	u8 *src = surf_src->pixels;
+	SDL_Color *pal = surf_src->palette;
+	int w, h;
+
+	wait_here("SDL_BlitSurface");
+
+	int dw = surf_src->w * 65536 / 400;
+	int dh = surf_src->h *65536 / 240;
+	int sh, sw = 0;
+	for (w = 0; w < 400; w++) {
+		sh = 0;
+		for (h = 0; h < 240; h++) {
+			u32 srcofs = (sh>>16) * surf_src->w + (sw>>16);
+			u32 dstofs = (w*240 + 239 - h) * 3;
+			bufAdr[dstofs++] = pal[src[srcofs]].b;
+			bufAdr[dstofs++] = pal[src[srcofs]].g;
+			bufAdr[dstofs] = pal[src[srcofs]].r;
+			sh += dh;
+		}
+		sw += dw;
 	}
 	return 0;
 }
