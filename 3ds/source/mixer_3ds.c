@@ -29,6 +29,7 @@ void *ndsp_mix_arg = 0;
 void ndsp_submit(void) {
 	if (!ndsp_initialized)
 		return;
+
 	//printf("%d %d\n", ndsp_completed, ndsp_sent);
 	//fflush(stdout);
 	while (1)

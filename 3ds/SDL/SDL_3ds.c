@@ -158,7 +158,8 @@ void SDL_GetMouseState(int *x, int *y) {
 }
 
 void SDL_Delay(u32 ms) {
-
+	int64_t waitns = (1000000LL * ms);
+	svcSleepThread(waitns);
 }
 
 const char *SDL_GetError(void) {

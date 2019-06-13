@@ -218,7 +218,7 @@ boolean screenvisible;
 // If true, we display dots at the bottom of the screen to 
 // indicate FPS.
 
-static boolean display_fps_dots;
+static boolean display_fps_dots = true;
 
 // If this is true, the screen is rendered but not blitted to the
 // video buffer.
